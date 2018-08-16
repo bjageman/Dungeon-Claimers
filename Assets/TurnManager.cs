@@ -8,6 +8,7 @@ public class TurnManager : NetworkBehaviour {
 
 	List<HeroController> playerOrder;
 	List<HeroController> savedPlayerOrder;
+    Queue<MonsterTribe> monsterOrder;
 	
     int currentRound = 1;
 
@@ -27,11 +28,11 @@ public class TurnManager : NetworkBehaviour {
 				Destroy(gameObject);
 			}       
             DontDestroyOnLoad(gameObject);
-            
         }
 
 	void Start(){
 		playerOrder = new List<HeroController>();
+        monsterOrder = new Queue<MonsterTribe>();
 	}
 
     public void StartGame()
@@ -54,7 +55,6 @@ public class TurnManager : NetworkBehaviour {
     private void StartNewRound()
     {
         currentRound++;
-        print("Starting New Round: " + currentRound);
         playerOrder = new List<HeroController>(savedPlayerOrder);
 		foreach(HeroController player in playerOrder){
 			player.ResetActions();
@@ -64,23 +64,36 @@ public class TurnManager : NetworkBehaviour {
 	public void SubmitTurn(HeroController hero){
 		if (hero == GetActiveHero())
         {
-            MoveToNextPlayer(hero);
+            StartCoroutine(MoveToNextPlayer(hero));
         }
     }
 
-    private void MoveToNextPlayer(HeroController hero)
+    IEnumerator MoveToNextPlayer(HeroController hero)
     {
-        print(hero.gameObject.name + " submitted turn");
+        hero.heroUI.SetActiveMarker(false);
+        yield return new WaitForEndOfFrame();
         playerOrder.Remove(hero);
 		if (playerOrder.Count == 0){
-			StartNewRound();
+			ProcessMonsterActions();  
 		}
     }
 
-    
+    private void ProcessMonsterActions()
+    {
+        monsterOrder = new Queue<MonsterTribe>(FindObjectsOfType<MonsterTribe>());
+        while(monsterOrder.Count > 0){
+            MonsterTribe monster = monsterOrder.Dequeue();
+            if (monster != null){
+                monster.AttackWeakerNeighbors();
+                monster.MeldWithSameNeighbors();
+                if (monster.numRoundsPerGrowth > 0 && currentRound % monster.numRoundsPerGrowth == 0){
+                    monster.GrowTribe();
+                }
+            }
+            
+        }
+        StartNewRound();
+    }
 
-    // Update is called once per frame
-    void Update () {
-		
-	}
+    
 }

@@ -5,10 +5,21 @@ using UnityEngine;
 
 public class BoardGenerator : MonoBehaviour {
 
-	[SerializeField] int boardSize;
+	[Header("Board Settings")]
+	[SerializeField] int boardWidth;
+	[SerializeField] int boardHeight;
 	[SerializeField] float startX = 0;
 	[SerializeField] float startY = 0;
+	[SerializeField] bool useFogOfWar = true;
+
+	[SerializeField] MonsterTribe[] monsters;
+
+	[Header("Spawn Tiles")]
 	[SerializeField] GameObject defaultTile;
+	[SerializeField] GameObject fogOfWar;
+	[SerializeField] GameObject claimOverlay;
+
+
 	[SerializeField] Sprite EmptyBlock;
 	[SerializeField] Sprite DeadEndPathUp;
 	[SerializeField] Sprite DeadEndPathDown;
@@ -26,43 +37,110 @@ public class BoardGenerator : MonoBehaviour {
 	[SerializeField] Sprite ForkedPathRight;	
 	[SerializeField] Sprite FourWayPath;
 	
-
 	Room[,] board;
+
+	public static BoardGenerator instance;
+
+	public Room GetRoom(int x, int y){
+		if (x >= 0 && x < boardWidth && y >= 0 && y < boardHeight){
+			return board[x,y];
+		}
+		return null;
+	}
+
+	void Awake(){
+		if (FindObjectsOfType<BoardGenerator>().Length > 1){
+			Destroy(this);
+		}else{
+			instance = this;
+		}
+	}
 
 	// Use this for initialization
 	void Start () {
-		board = new Room[boardSize, boardSize];
+		board = new Room[boardWidth, boardHeight];
 		CreateBoard();
 	}
 	
 	private void CreateBoard(){
-		float startX = transform.position.x;
-		float startY = transform.position.y;
 		
-		for(int x = 0; x < boardSize; x++){
-			for(int y = 0; y < boardSize; y++){
+		for(int x = 0; x < boardWidth; x++){
+			for(int y = 0; y < boardHeight; y++){
 				Room room = CreateNewRoom(x,y);
 				board[x,y] = room; 
 			}
 		}
 		TraverseDungeon(board[0,0]);
+		TraverseDungeon(board[0, boardHeight - 1]);
+		TraverseDungeon(board[boardWidth - 1, 0]);
+		TraverseDungeon(board[boardWidth - 1, boardHeight - 1]);
 		SetTilesOnBoard();
+		AddPlayersToBoard();
+	}
+
+    private void AddPlayersToBoard()
+    {
+        HeroController[] players = FindObjectsOfType<HeroController>();
+		int[][] startPositions = new int[][]{
+			new int[2]{0,0}, new int[2]{boardWidth - 1, boardHeight - 1}, new int[2]{0, boardHeight - 1}, new int[2]{boardWidth - 1, 0}, 
+		};
+		int i = 0;
+		foreach ( HeroController player in players ){
+			if (i > 3){ return;}
+			int[] position = startPositions[i];
+			i++;
+			player.SetHeroOnBoard(position[0], position[1]);
+			Destroy(GetRoom(position[0],position[1]).GetTribe().gameObject);
+		}
 	}
 
     private Room CreateNewRoom(int x, int y)
     {
-		Vector2 offset = defaultTile.GetComponent<SpriteRenderer>().bounds.size;
-		GameObject newTile = Instantiate(defaultTile, new Vector3(startX + (offset.x * x), startY + (offset.y * y), 0), defaultTile.transform.rotation);
-		newTile.transform.parent = transform;
-		newTile.GetComponent<SpriteRenderer>().sprite = EmptyBlock;
-		Room room = new Room();
-		room.tile = newTile;
-		room.x = x;
-		room.y = y;
-		return room;
-	}
+        GameObject newTile = CreateNewTile(x, y);
+        Room room = new Room();
+        room.tile = newTile;
+		room.claimOverlay = CreateClaimOverlay(newTile);
+		room.SetTribe(CreateMonster(newTile));
+		if (useFogOfWar){
+			room.fog = createFogOfWar(newTile);
+		}	
+        room.x = x;
+        room.y = y;
+        return room;
+    }
 
-	private void TraverseDungeon(Room currentRoom, Room previousRoom = null){
+    private GameObject CreateClaimOverlay(GameObject newTile)
+    {
+        GameObject claimTile = Instantiate(claimOverlay, newTile.transform.position, newTile.transform.rotation);
+		claimTile.gameObject.SetActive(false);
+		return claimTile;
+    }
+
+    private GameObject CreateNewTile(int x, int y)
+    {
+        Vector2 offset = defaultTile.GetComponent<SpriteRenderer>().bounds.size;
+        GameObject newTile = Instantiate(defaultTile, new Vector3(startX + (offset.x * x), startY + (offset.y * y), 0), defaultTile.transform.rotation);
+        newTile.transform.parent = transform;
+        SpriteRenderer newTileSR = newTile.GetComponent<SpriteRenderer>();
+        newTileSR.sprite = EmptyBlock;
+        newTileSR.sortingOrder = -1;
+        newTileSR.sortingLayerName = "Dungeon";
+        return newTile;
+    }
+
+	private MonsterTribe CreateMonster(GameObject newTile)
+    {
+		MonsterTribe monster = monsters[UnityEngine.Random.Range(0, monsters.Length)];
+        GameObject monsterObj = Instantiate(monster.gameObject, newTile.transform.position, Quaternion.identity, transform);
+		return monsterObj.GetComponent<MonsterTribe>();
+    }
+
+	private GameObject createFogOfWar(GameObject newTile)
+    {
+        return Instantiate(fogOfWar, newTile.transform.position, newTile.transform.rotation);
+    }
+
+    private void TraverseDungeon(Room currentRoom, Room previousRoom = null){
 		currentRoom.isVisited = true;
 		int x = currentRoom.x;
 		int y = currentRoom.y;
@@ -71,10 +149,10 @@ public class BoardGenerator : MonoBehaviour {
 		if (previousRoom != null && !currentRoom.pathWays.Contains(previousRoom)){
 			currentRoom.pathWays.Add(previousRoom);
 		}
-		if(currentRoom.y < boardSize - 1 && board[x,y+1].isVisited == false){
+		if(currentRoom.y < boardHeight - 1 && board[x,y+1].isVisited == false){
 			paths.Add(Vector2Int.up);
 		}
-		if(currentRoom.x < boardSize - 1 && board[x + 1,y].isVisited == false){
+		if(currentRoom.x < boardWidth - 1 && board[x + 1,y].isVisited == false){
 			paths.Add(Vector2Int.right);
 		}
 		if(currentRoom.y > 0 && board[x, y - 1].isVisited == false){
@@ -90,7 +168,6 @@ public class BoardGenerator : MonoBehaviour {
 			{
 				//Create a random number of branches
 				branches = UnityEngine.Random.Range(1, paths.Count + 1);
-				print(branches + " " + paths.Count);
 			}
 			for (int i = 0; i < branches; i++){
 				Vector2Int direction = paths[UnityEngine.Random.Range(0, paths.Count)];
@@ -106,8 +183,8 @@ public class BoardGenerator : MonoBehaviour {
 
     private void SetTilesOnBoard()
     {
-		for(int x = 0; x < boardSize; x++){
-			for(int y = 0; y < boardSize; y++){
+		for(int x = 0; x < boardWidth; x++){
+			for(int y = 0; y < boardHeight; y++){
 				Room room = board[x,y];
 				List<Vector2Int> directions = new List<Vector2Int>();
 				foreach(Room pathWay in room.pathWays){

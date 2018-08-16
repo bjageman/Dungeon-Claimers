@@ -14,7 +14,7 @@ public class AIController : MonoBehaviour {
 
 	public void SubmitTurn()
     {
-        heroController.ResolveTurn();
+        heroController.SubmitTurn();
 
     }
 

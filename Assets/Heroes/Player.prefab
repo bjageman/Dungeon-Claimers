@@ -22,9 +22,8 @@ GameObject:
   - component: {fileID: 212117253405316638}
   - component: {fileID: 70159551872136090}
   - component: {fileID: 50223812169756042}
-  - component: {fileID: 114829300198568996}
-  - component: {fileID: 114183817567289872}
   - component: {fileID: 114075995437071144}
+  - component: {fileID: 114428317383991834}
   - component: {fileID: 114405092603200446}
   m_Layer: 0
   m_Name: Player
@@ -40,7 +39,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1100117641635442}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -5.49, y: 2.44, z: 0}
+  m_LocalPosition: {x: -3.27, y: 1.73, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -92,28 +91,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c0d4087e018feeb4f98741bdb2b0cd30, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  color: white
---- !u!114 &114183817567289872
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1100117641635442}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: -1768714887, guid: dc443db3e92b4983b9738c1131f555cb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_TransformSyncMode: 2
-  m_SendInterval: 0
-  m_SyncRotationAxis: 3
-  m_RotationSyncCompression: 0
-  m_SyncSpin: 0
-  m_MovementTheshold: 0.001
-  m_VelocityThreshold: 0.0001
-  m_SnapThreshold: 5
-  m_InterpolateRotation: 1
-  m_InterpolateMovement: 1
+  movesPerTurn: 3
+  heroName: P1
+  heroUI: {fileID: 0}
+  heroColor: {r: 0, g: 0.73032665, b: 1, a: 0.3647059}
 --- !u!114 &114405092603200446
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -125,7 +106,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 81e792f2d4aa0b8498e3111c46b7c56e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &114829300198568996
+--- !u!114 &114428317383991834
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
@@ -133,30 +114,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1100117641635442}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 372142912, guid: 870353891bb340e2b2a9c8707e7419ba, type: 3}
+  m_Script: {fileID: 11500000, guid: e48b11eebbdfbec4fbd6bdb628cf66cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_SceneId:
-    m_Value: 0
-  m_AssetId:
-    i0: 97
-    i1: 89
-    i2: 19
-    i3: 150
-    i4: 74
-    i5: 183
-    i6: 21
-    i7: 228
-    i8: 249
-    i9: 116
-    i10: 144
-    i11: 199
-    i12: 81
-    i13: 212
-    i14: 143
-    i15: 80
-  m_ServerOnly: 0
-  m_LocalPlayerAuthority: 1
+  health: 20
+  attack: 5
 --- !u!212 &212117253405316638
 SpriteRenderer:
   m_ObjectHideFlags: 1
@@ -189,8 +151,8 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
+  m_SortingLayerID: -260353503
+  m_SortingLayer: 2
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: 65cbb39c364ab574ca22a174b7313dee, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
